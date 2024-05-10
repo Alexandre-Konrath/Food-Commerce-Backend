@@ -1,3 +1,5 @@
+##! arquivo de configuração do docker
+
 version: "3.1"
 services:
   pgadmin:
