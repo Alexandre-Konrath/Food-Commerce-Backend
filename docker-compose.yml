@@ -1,0 +1,40 @@
+version: "3.1"
+services:
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    ports:
+      - 8000:80
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: secret
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:14
+    restart: always
+    volumes:
+      - postgres-food-commerce-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: food_commerce_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      PGDATA: /var/lib/postgresql/data
+
+  food-commerce:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./food-commerce:/usr/share/nginx/html
+    depends_on:
+      - postgres
+
+volumes:
+  pgadmin-data:
+  postgres-food-commerce-data:
