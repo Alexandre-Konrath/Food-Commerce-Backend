@@ -3,7 +3,8 @@ import { Customer, Order, PrismaClient } from "@prisma/client"
 import { CustomerData } from "../interfaces/CustomerData"
 import { PaymentData } from "../interfaces/PaymentData"
 import { SnackData } from "../interfaces/SnackData"
-import PaymentService from "./PaymentService"
+
+import PaymentServices from "./PaymentServices"
 
 export default class CheckoutService {
   private prisma: PrismaClient
@@ -17,7 +18,7 @@ export default class CheckoutService {
     cart: SnackData[],
     customer: CustomerData,
     payment: PaymentData
-  ) {
+  ): Promise<{ id: number; transactionId: string; status: string }> {
     //? "puxar" os dados de snacks do BD
     const snacks = await this.prisma.snack.findMany({
       where: {
@@ -48,11 +49,25 @@ export default class CheckoutService {
     // console.log(`orderCreated`, orderCreated)
 
     //? processar o pagamento
-    const trasaction = await new PaymentService().process(
+    const { transactionId, status } = await new PaymentServices().process(
       orderCreated,
       customerCreated,
       payment
     )
+
+    orderCreated = await this.prisma.order.update({
+      where: { id: orderCreated.id },
+      data: {
+        transactionId,
+        status,
+      },
+    })
+
+    return {
+      id: orderCreated.id,
+      transactionId: orderCreated.transactionId!,
+      status: orderCreated.status,
+    }
   }
 
   // metodos de utilidades
